@@ -49,7 +49,7 @@ func filterDateTime(filter DateFilter, t time.Time) bool {
 	return ret
 }
 
-func filterDate(c dateCondition, t time.Time) bool {
+func filterDate(c DateCondition, t time.Time) bool {
 	if c.After != nil && t.After(*c.After) {
 		return c.Before != nil && t.Before(*c.Before)
 	}
@@ -57,7 +57,7 @@ func filterDate(c dateCondition, t time.Time) bool {
 	return c.Before != nil && t.Before(*c.Before)
 }
 
-func filterTime(c timeCondition, t time.Time) bool {
+func filterTime(c TimeCondition, t time.Time) bool {
 	if c.Before != nil {
 		if t.Hour() < *c.Before {
 			if c.After != nil {
@@ -76,20 +76,20 @@ func filterWeekDay(w time.Weekday, t time.Time) bool {
 
 // DateFilter is used to filter events based on dates/times.
 type DateFilter struct {
-	Date    *dateCondition
-	Time    *timeCondition
+	Date    *DateCondition
+	Time    *TimeCondition
 	Weekday *time.Weekday
 }
 
 // dateCondition can be built using a static time range but can also be
 // computed automatically by using an "around" argument.
-type dateCondition struct {
+type DateCondition struct {
 	Before *time.Time
 	After  *time.Time
 }
 
 // timeCondition is used to select events based on the hours
-type timeCondition struct {
+type TimeCondition struct {
 	Before *int
 	After  *int
 }
