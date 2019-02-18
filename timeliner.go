@@ -58,16 +58,16 @@ func filterDate(c dateCondition, t time.Time) bool {
 }
 
 func filterTime(c timeCondition, t time.Time) bool {
-	if c.Before != 0 {
-		if t.Hour() < c.Before {
-			if c.After != 0 {
-				return t.Hour() > c.After
+	if c.Before != nil {
+		if t.Hour() < *c.Before {
+			if c.After != nil {
+				return t.Hour() > *c.After
 			}
 			return true
 		}
 	}
 
-	return c.After != 0 && t.Hour() > c.After
+	return c.After != nil && t.Hour() > *c.After
 }
 
 func filterWeekDay(w time.Weekday, t time.Time) bool {
@@ -90,8 +90,8 @@ type dateCondition struct {
 
 // timeCondition is used to select events based on the hours
 type timeCondition struct {
-	Before int
-	After  int
+	Before *int
+	After  *int
 }
 
 type Reader struct {

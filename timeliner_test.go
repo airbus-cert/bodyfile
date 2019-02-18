@@ -49,6 +49,10 @@ func _date(s string) *time.Time {
 	return &t
 }
 
+func p(i int) *int {
+	return &i
+}
+
 func Test_FilterDate(t *testing.T) {
 	w := time.Monday
 	testcases := []TimeFilteringTestCase{
@@ -65,9 +69,9 @@ func Test_FilterDate(t *testing.T) {
 			Body: `0|\.\Windows\System32\oobe\audit.exe|36434|0|454|0|74240|1247527771|1247535535|1365579363|1247527771`,
 			Filters: []FilterCase{
 				{Expected: true, Filter: DateFilter{Date: &dateCondition{After: _date("2013-04-09"), Before: _date("2013-04-11")}}},
-				{Expected: true, Filter: DateFilter{Time: &timeCondition{Before: 3, After: 0}}},
-				{Expected: true, Filter: DateFilter{Time: &timeCondition{Before: 8}}},
-				{Expected: true, Filter: DateFilter{Time: &timeCondition{After: 6}}},
+				{Expected: true, Filter: DateFilter{Time: &timeCondition{Before: p(3), After: p(0)}}},
+				{Expected: true, Filter: DateFilter{Time: &timeCondition{Before: p(8)}}},
+				{Expected: true, Filter: DateFilter{Time: &timeCondition{After: p(6)}}},
 			},
 		},
 		{
@@ -76,7 +80,7 @@ func Test_FilterDate(t *testing.T) {
 			Body: `0|\.\Windows\System32\MRT.exe|64535|0|497|0|116773704|1365584158|1424097650|1424097650|1365584158`,
 			Filters: []FilterCase{
 				//{Expected: true, Filter: DateFilter{Date: dateCondition{After: _date("2013-04-10"), After: _date("2013-04-11")}}},
-				{Expected: true, Filter: DateFilter{Time: &timeCondition{Before: 15, After: 14}}},
+				{Expected: true, Filter: DateFilter{Time: &timeCondition{Before: p(15), After: p(14)}}},
 				{Expected: true, Filter: DateFilter{Weekday: &w}},
 			},
 		},
