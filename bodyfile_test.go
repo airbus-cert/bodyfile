@@ -1,6 +1,8 @@
 package bodyfile
 
 import (
+	"bytes"
+	"io"
 	"reflect"
 	"testing"
 	"time"
@@ -21,9 +23,10 @@ func Test_BodyfileParsing(t *testing.T) {
 		ChangeTime:       time.Unix(1365579363, 0),
 		CreationTime:     time.Unix(1247527771, 0),
 	}
-	entry, err := ParseBodyLine(input)
+	r := NewReader(bytes.NewBufferString(input))
+	entry, err := r.Read()
 	if err != nil {
-		t.Errorf("ParseBodyLine() failed: %s", err)
+		t.Errorf("Could not read: %s", err)
 	}
 
 	if !reflect.DeepEqual(entry, &expected) {
@@ -32,7 +35,7 @@ func Test_BodyfileParsing(t *testing.T) {
 }
 
 type FilterCase struct {
-	Filter   DateFilter
+	Filter   string
 	Expected bool
 }
 
@@ -41,25 +44,12 @@ type TimeFilteringTestCase struct {
 	Filters []FilterCase
 }
 
-func _date(s string) *time.Time {
-	t, err := time.Parse(time.RFC3339, s+"T15:04:05Z")
-	if err != nil {
-		panic(err)
-	}
-	return &t
-}
-
-func p(i int) *int {
-	return &i
-}
-
 func Test_FilterDate(t *testing.T) {
-	w := time.Monday
 	testcases := []TimeFilteringTestCase{
 		{
 			Body: `0|\.\$MFT|0|0|256|0|284950528|1365579077|1365579077|1365579077|1365579077`,
 			Filters: []FilterCase{
-				{Expected: false, Filter: DateFilter{Date: &DateCondition{After: _date("2018-11-10")}}},
+				{Expected: false, Filter: "date > '2018-11-10'"},
 			},
 		},
 		{
@@ -68,10 +58,10 @@ func Test_FilterDate(t *testing.T) {
 			// 2013-04-10T07:36:03Z    74240 ..c. 0 454      0        36434    \.\Windows\System32\oobe\audit.exe
 			Body: `0|\.\Windows\System32\oobe\audit.exe|36434|0|454|0|74240|1247527771|1247535535|1365579363|1247527771`,
 			Filters: []FilterCase{
-				{Expected: true, Filter: DateFilter{Date: &DateCondition{After: _date("2013-04-09"), Before: _date("2013-04-11")}}},
-				{Expected: true, Filter: DateFilter{Time: &TimeCondition{Before: p(3), After: p(0)}}},
-				{Expected: true, Filter: DateFilter{Time: &TimeCondition{Before: p(8)}}},
-				{Expected: true, Filter: DateFilter{Time: &TimeCondition{After: p(6)}}},
+				{Expected: true, Filter: "date > '2013-04-09' && date < '2013-04-11'"},
+				{Expected: true, Filter: "hour < 3 && hour > 0"},
+				{Expected: true, Filter: "hour < 8"},
+				{Expected: true, Filter: "hour > 6"},
 			},
 		},
 		{
@@ -79,22 +69,32 @@ func Test_FilterDate(t *testing.T) {
 			// 2015-02-16T14:40:50Z 116773704 m.c. 0 497      0        64535    \.\Windows\System32\MRT.exe
 			Body: `0|\.\Windows\System32\MRT.exe|64535|0|497|0|116773704|1365584158|1424097650|1424097650|1365584158`,
 			Filters: []FilterCase{
-				//{Expected: true, Filter: DateFilter{Date: dateCondition{After: _date("2013-04-10"), After: _date("2013-04-11")}}},
-				{Expected: true, Filter: DateFilter{Time: &TimeCondition{Before: p(15), After: p(14)}}},
-				{Expected: true, Filter: DateFilter{Weekday: &w}},
+				{Expected: true, Filter: "hour <= 15 && hour >= 14"},
+				{Expected: true, Filter: "weekday == 'Monday'"},
 			},
 		},
 	}
 
 	for _, tc := range testcases {
-		entry, err := ParseBodyLine(tc.Body)
-		if err != nil {
-			t.Errorf("Could not parse line: %s", err)
-		}
-
 		for _, filter := range tc.Filters {
-			if got := entry.TimeFilter(filter.Filter); got != filter.Expected {
-				t.Errorf("FilterTime(%v) returned %t while expecting %t", filter.Filter, got, filter.Expected)
+			r := NewReader(bytes.NewBufferString(tc.Body))
+			r.AddFilter(filter.Filter)
+			entry, err := r.Read()
+
+			if err == io.EOF {
+				if filter.Expected {
+					t.Errorf("Filter(%v) did not matched even if it was supposed to", filter.Filter)
+				}
+				continue
+			}
+
+			if err != nil {
+				t.Errorf("Could not read: %s", err)
+				continue
+			}
+
+			if got := entry.MatchingTimestamp != 0; got != filter.Expected {
+				t.Errorf("Filter(%v) returned %t while expecting %t", filter.Filter, got, filter.Expected)
 			}
 		}
 	}
