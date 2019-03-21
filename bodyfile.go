@@ -124,8 +124,11 @@ func fieldsToEntry(fields []string) (*Entry, error) {
 	return &e, nil
 }
 
-func entry2params(t time.Time) govaluate.Parameters {
+func entry2params(t time.Time, base map[string]string) govaluate.Parameters {
 	params := govaluate.MapParameters{}
+	for k, v := range base {
+		params[k] = v
+	}
 
 	params["hour"] = t.Hour()
 	params["min"] = t.Minute()
@@ -150,7 +153,11 @@ func (r *Reader) Match(entry *Entry) (bool, error) {
 		return true, nil
 	}
 
-	params := entry2params(entry.AccessTime)
+	baseParams := map[string]string{
+		"path": entry.Name,
+		"p":    entry.Name,
+	}
+	params := entry2params(entry.AccessTime, baseParams)
 	decision, err := r.expression.Eval(params)
 	if err != nil {
 		return false, fmt.Errorf("Could not evaluate expression: %s", err)
@@ -162,7 +169,7 @@ func (r *Reader) Match(entry *Entry) (bool, error) {
 		entry.MatchingTimestamp |= AccessTime
 	}
 
-	params = entry2params(entry.ModificationTime)
+	params = entry2params(entry.ModificationTime, baseParams)
 	decision, err = r.expression.Eval(params)
 	if err != nil {
 		return false, fmt.Errorf("Could not evaluate expression: %s", err)
@@ -174,7 +181,7 @@ func (r *Reader) Match(entry *Entry) (bool, error) {
 		entry.MatchingTimestamp |= ModificationTime
 	}
 
-	params = entry2params(entry.CreationTime)
+	params = entry2params(entry.CreationTime, baseParams)
 	decision, err = r.expression.Eval(params)
 	if err != nil {
 		return false, fmt.Errorf("Could not evaluate expression: %s", err)
@@ -186,7 +193,7 @@ func (r *Reader) Match(entry *Entry) (bool, error) {
 		entry.MatchingTimestamp |= CreationTime
 	}
 
-	params = entry2params(entry.ChangeTime)
+	params = entry2params(entry.ChangeTime, baseParams)
 	decision, err = r.expression.Eval(params)
 	if err != nil {
 		return false, fmt.Errorf("Could not evaluate expression: %s", err)
