@@ -43,6 +43,7 @@ func NewReader(r io.Reader) *Reader {
 	csvReader := csv.NewReader(r)
 	csvReader.Comma = '|'
 	csvReader.Comment = '#'
+	csvReader.LazyQuotes = true
 
 	return &Reader{
 		csv:    csvReader,

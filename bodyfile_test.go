@@ -8,6 +8,15 @@ import (
 	"time"
 )
 
+func Test_BodyfileUnquotedField(t *testing.T) {
+	input := `0|Cissesrv        ImagePath="C:\Program Files\HP\Cissesrv\cissesrv.exe"|0||0|0|0|0|1535229693|0|0`
+	r := NewReader(bytes.NewBufferString(input))
+	_, err := r.Read()
+	if err != nil {
+		t.Errorf("Could not read: %s", err)
+	}
+}
+
 func Test_BodyfileParsing(t *testing.T) {
 	input := `0|\.\Windows\System32\oobe\audit.exe|36434|0|454|0|74240|1247527771|1247535535|1365579363|1247527771`
 	expected := Entry{
