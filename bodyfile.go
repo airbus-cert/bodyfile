@@ -103,25 +103,25 @@ func fieldsToEntry(fields []string) (*Entry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("AccessTime was not an integer: %s", err)
 	}
-	e.AccessTime = time.Unix(i, 0)
+	e.AccessTime = time.Unix(i, 0).UTC()
 
 	i, err = strconv.ParseInt(fields[8], 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("ModificationTime was not an integer: %s", err)
 	}
-	e.ModificationTime = time.Unix(i, 0)
+	e.ModificationTime = time.Unix(i, 0).UTC()
 
 	i, err = strconv.ParseInt(fields[9], 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("ChangeTime was not an integer: %s", err)
 	}
-	e.ChangeTime = time.Unix(i, 0)
+	e.ChangeTime = time.Unix(i, 0).UTC()
 
 	i, err = strconv.ParseInt(fields[10], 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("CreationTime was not an integer: %s", err)
 	}
-	e.CreationTime = time.Unix(i, 0)
+	e.CreationTime = time.Unix(i, 0).UTC()
 
 	return &e, nil
 }

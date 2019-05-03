@@ -27,7 +27,13 @@ func Test_BuggySize(t *testing.T) {
 }
 
 func Test_BodyfileParsing(t *testing.T) {
+	// 2009-07-13T23:29:31Z    74240 .a.b 0 454      0        36434    \.\Windows\System32\oobe\audit.exe
+	// 2009-07-14T01:38:55Z    74240 m... 0 454      0        36434    \.\Windows\System32\oobe\audit.exe
+	// 2013-04-10T07:36:03Z    74240 ..c. 0 454      0        36434    \.\Windows\System32\oobe\audit.exe
 	input := `0|\.\Windows\System32\oobe\audit.exe|36434|0|454|0|74240|1247527771|1247535535|1365579363|1247527771`
+	acTime, _ := time.Parse(time.RFC3339, "2009-07-13T23:29:31Z")
+	mTime, _ := time.Parse(time.RFC3339, "2009-07-14T01:38:55Z")
+	cTime, _ := time.Parse(time.RFC3339, "2013-04-10T07:36:03Z")
 	expected := Entry{
 		MD5:              "0",
 		Name:             `\.\Windows\System32\oobe\audit.exe`,
@@ -36,10 +42,10 @@ func Test_BodyfileParsing(t *testing.T) {
 		UID:              454,
 		GID:              0,
 		Size:             74240,
-		AccessTime:       time.Unix(1247527771, 0),
-		ModificationTime: time.Unix(1247535535, 0),
-		ChangeTime:       time.Unix(1365579363, 0),
-		CreationTime:     time.Unix(1247527771, 0),
+		AccessTime:       acTime,
+		CreationTime:     acTime,
+		ModificationTime: mTime,
+		ChangeTime:       cTime,
 	}
 	r := NewReader(bytes.NewBufferString(input))
 	entry, err := r.Read()
