@@ -20,7 +20,7 @@ type Entry struct {
 	Mode             string
 	UID              int
 	GID              int
-	Size             int
+	Size             int64
 	AccessTime       time.Time
 	ModificationTime time.Time
 	ChangeTime       time.Time
@@ -94,9 +94,10 @@ func fieldsToEntry(fields []string) (*Entry, error) {
 
 	i, err = strconv.ParseInt(fields[6], 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Size was not an integer: %s", err)
+		//return nil, fmt.Errorf("Size was not an integer: %s", err)
+		i = 0
 	}
-	e.Size = int(i)
+	e.Size = i
 
 	i, err = strconv.ParseInt(fields[7], 10, 64)
 	if err != nil {
