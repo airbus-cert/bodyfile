@@ -124,3 +124,31 @@ func Test_FilterDate(t *testing.T) {
 	}
 
 }
+
+func Test_MinusOneTimestamp(t *testing.T) {
+	input := `0|\\Users\John\Desktop\My Document.docx|291779||0|0|143711|-1|-1|-1|1427897741`
+
+	r := NewReader(bytes.NewBufferString(input))
+	n, err := r.Slurp()
+	if err != nil {
+		t.Errorf("Could not slurp: %s", err)
+		return
+	}
+
+	if n > 1 {
+		t.Errorf("Wrong number of results: expected 1, got %d", n)
+		return
+	}
+
+	entry, err := r.Next()
+	if err != nil {
+		t.Errorf("Could not get the entry: %s", err)
+		return
+	}
+
+	birthTime := entry.Entry.CreationTime
+	if !entry.Time.Equal(birthTime) {
+		t.Errorf("The only entry we get should have its Time equal to the Creation time: expected %+v, got %+v", birthTime, entry.Time)
+		return
+	}
+}
