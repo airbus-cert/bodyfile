@@ -11,6 +11,9 @@ import (
 	"github.com/Knetic/govaluate"
 )
 
+// Timestamp lower limit: represents a -1 timestamp
+var smallestTime time.Time = time.Unix(-1, 0).UTC()
+
 // Entry represents one line of the bodyfile
 type Entry struct {
 	// MD5|name|inode|mode_as_string|UID|GID|size|atime|mtime|ctime|crtime
@@ -252,24 +255,24 @@ func (r *Reader) Slurp() (int, error) {
 			return 0, fmt.Errorf("Error while reading file: %s", err)
 		}
 
-		if !r.Strict || (r.Strict && ((AccessTime & e.MatchingTimestamp) != 0)) {
+		if e.AccessTime.After(smallestTime) && !r.Strict || (r.Strict && ((AccessTime & e.MatchingTimestamp) != 0)) {
 			r.entries = append(r.entries, TimeStampedEntry{e.AccessTime, e})
 		}
 
 		if e.ModificationTime != e.AccessTime {
-			if !r.Strict || (r.Strict && ((ModificationTime & e.MatchingTimestamp) != 0)) {
+			if e.ModificationTime.After(smallestTime) && !r.Strict || (r.Strict && ((ModificationTime & e.MatchingTimestamp) != 0)) {
 
 				r.entries = append(r.entries, TimeStampedEntry{e.ModificationTime, e})
 			}
 		}
 		if e.ChangeTime != e.ModificationTime && e.ChangeTime != e.AccessTime {
-			if !r.Strict || (r.Strict && ((ChangeTime & e.MatchingTimestamp) != 0)) {
+			if e.ChangeTime.After(smallestTime) && !r.Strict || (r.Strict && ((ChangeTime & e.MatchingTimestamp) != 0)) {
 
 				r.entries = append(r.entries, TimeStampedEntry{e.ChangeTime, e})
 			}
 		}
 		if e.CreationTime != e.ModificationTime && e.CreationTime != e.ChangeTime && e.CreationTime != e.AccessTime {
-			if !r.Strict || (r.Strict && ((CreationTime & e.MatchingTimestamp) != 0)) {
+			if e.CreationTime.After(smallestTime) && !r.Strict || (r.Strict && ((CreationTime & e.MatchingTimestamp) != 0)) {
 				r.entries = append(r.entries, TimeStampedEntry{e.CreationTime, e})
 			}
 		}
