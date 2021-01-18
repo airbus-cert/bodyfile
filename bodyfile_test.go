@@ -8,6 +8,15 @@ import (
 	"time"
 )
 
+func Test_BodyfileWithPipes(t *testing.T) {
+	input := `0|file\|with\|pipes|0|0|0|0|9529053861562548261|1331893980|1331893980|1331894001|1264526371`
+	r := NewReader(bytes.NewBufferString(input))
+	_, err := r.Read()
+	if err != nil {
+		t.Errorf("Could not read: %s", err)
+	}
+}
+
 func Test_BodyfileUnquotedField(t *testing.T) {
 	input := `0|Cissesrv        ImagePath="C:\Program Files\HP\Cissesrv\cissesrv.exe"|0||0|0|0|0|1535229693|0|0`
 	r := NewReader(bytes.NewBufferString(input))
