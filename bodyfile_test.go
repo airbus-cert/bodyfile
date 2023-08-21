@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+func Test_BodyfileWithALeadingEscapedPipes(t *testing.T) {
+	input := `0|file\|with\|pipes\\|0|0|0|0|9529053861562548261|1331893980|1331893980|1331894001|1264526371`
+	r := NewReader(bytes.NewBufferString(input))
+	_, err := r.Read()
+	if err != nil {
+		t.Errorf("Could not read: %s", err)
+	}
+}
 func Test_BodyfileWithPipes(t *testing.T) {
 	input := `0|file\|with\|pipes|0|0|0|0|9529053861562548261|1331893980|1331893980|1331894001|1264526371`
 	r := NewReader(bytes.NewBufferString(input))
