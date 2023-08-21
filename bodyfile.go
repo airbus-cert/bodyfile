@@ -6,9 +6,11 @@ import (
 	"io"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Knetic/govaluate"
+	"golang.org/x/exp/slices"
 )
 
 // Timestamp lower limit: represents a -1 timestamp
@@ -68,8 +70,24 @@ func (r *Reader) AddFilter(filter string) (err error) {
 }
 
 func fieldsToEntry(fields []string) (*Entry, error) {
-	if len(fields) != 11 {
+	if len(fields) < 11 {
 		return nil, fmt.Errorf("Invalid bodyfile format, expected 11 fields, got %d", len(fields))
+	}
+
+	if len(fields) > 11 {
+		i := 1
+		for i < len(fields)-1 {
+			if strings.HasSuffix(fields[i], "\\") && !strings.HasSuffix(fields[i], "\\\\") {
+				fields[i] = fields[i] + fields[i+1]
+				fields = slices.Delete(fields, i+1, i+2)
+			} else {
+				fields[i-1] = fields[i-1] + fields[i]
+				fields = slices.Delete(fields, i, i+1)
+				break
+			}
+			i += 1
+		}
+
 	}
 
 	e := Entry{}
