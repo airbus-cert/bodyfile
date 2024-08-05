@@ -21,7 +21,7 @@ type Entry struct {
 	// MD5|name|inode|mode_as_string|UID|GID|size|atime|mtime|ctime|crtime
 	MD5              string
 	Name             string
-	Inode            int
+	Inode            string
 	Mode             string
 	UID              int
 	GID              int
@@ -93,15 +93,10 @@ func fieldsToEntry(fields []string) (*Entry, error) {
 	e := Entry{}
 	e.MD5 = fields[0]
 	e.Name = fields[1]
-	i, err := strconv.ParseInt(fields[2], 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Inode was not an integer: %s", err)
-	}
-
-	e.Inode = int(i)
+	e.Inode = fields[2]
 	e.Mode = fields[3]
 
-	i, err = strconv.ParseInt(fields[4], 10, 64)
+	i, err := strconv.ParseInt(fields[4], 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("UID was not an integer: %s", err)
 	}
